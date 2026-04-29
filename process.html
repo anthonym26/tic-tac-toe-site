@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Build Log — Tic Tac Toe Project</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #f5f2eb;
+      --surface:  #faf8f3;
+      --border:   #ddd8cc;
+      --ink:      #1a1814;
+      --muted:    #8a8478;
+      --accent:   #c8401a;
+      --tag-bg:   #1a1814;
+      --tag-text: #f5f2eb;
+      --num:      #c8401a;
+      --rule:     #ddd8cc;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'DM Mono', monospace;
+      line-height: 1.7;
+      padding: 0 20px 80px;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 64px 0 48px;
+      border-bottom: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(44px, 10vw, 72px);
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+    }
+
+    .page-title span { color: var(--accent); }
+
+    .page-desc {
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 480px;
+      margin-top: 4px;
+    }
+
+    .meta-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 8px;
+    }
+
+    .meta-item {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .meta-item strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      max-width: 720px;
+      margin: 0 auto;
+      padding-top: 56px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 0 24px;
+      padding-bottom: 52px;
+      position: relative;
+    }
+
+    /* vertical rule */
+    .entry:not(:last-child) .entry-line::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: 20px;
+      width: 1px;
+      height: calc(100% - 28px);
+      background: var(--rule);
+    }
+
+    .entry-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .entry-body { padding-top: 4px; }
+
+    .entry-tag {
+      display: inline-block;
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 2px;
+      margin-bottom: 10px;
+    }
+
+    .prompt-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--ink);
+      border-radius: 0 6px 6px 0;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .prompt-label {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .prompt-text {
+      font-size: 12px;
+      font-style: italic;
+      color: var(--ink);
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { border-color: var(--ink); color: var(--ink); }
+    .copy-btn.copied { border-color: #2a8a4a; color: #2a8a4a; }
+
+    .explanation-label {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .explanation-text {
+      font-size: 12.5px;
+      color: #3a3630;
+      line-height: 1.8;
+    }
+
+    .outcome-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--surface);
+    }
+
+    /* ── Footer ── */
+    .page-footer {
+      max-width: 720px;
+      margin: 0 auto;
+      padding-top: 40px;
+      border-top: 1px solid var(--rule);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-note {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .footer-badge {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 6px 14px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 500px) {
+      .entry { grid-template-columns: 36px 1fr; gap: 0 14px; }
+      .step-num { width: 30px; height: 30px; font-size: 15px; }
+      .entry:not(:last-child) .entry-line::after { left: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <p class="eyebrow">Project Documentation</p>
+    <h1 class="page-title">Build<br/>Log<span>.</span></h1>
+    <p class="page-desc">A record of every prompt used to build the Tic Tac Toe project — in order, with explanations.</p>
+    <div class="meta-row">
+      <span class="meta-item">Project <strong>Tic Tac Toe</strong></span>
+      <span class="meta-item">Prompts <strong>4</strong></span>
+      <span class="meta-item">Files <strong>3 + 1</strong></span>
+    </div>
+  </header>
+
+  <div class="timeline">
+
+    <!-- Prompt 1 -->
+    <div class="entry">
+      <div class="entry-line">
+        <div class="step-num">1</div>
+      </div>
+      <div class="entry-body">
+        <span class="entry-tag">Build</span>
+        <div class="prompt-block">
+          <p class="prompt-label">Exact Prompt</p>
+          <p class="prompt-text" id="p1">Build me a complete Tic Tac Toe website.
+Requirements:
+- 3x3 grid
+- Two-player game (Player X and Player O)
+- Detect win, loss, and draw
+- Display whose turn it is
+- Show a message when someone wins or it's a draw
+- Add a restart button
+Design:
+- Modern, clean UI
+- Centered board
+- Smooth hover effects
+- Responsive (works on phone and desktop)
+Technical:
+- Use only HTML, CSS, and JavaScript
+- Separate files: index.html, style.css, script.js
+- Ready for deployment as a static website</p>
+          <button class="copy-btn" onclick="copyPrompt('p1', this)">Copy</button>
+        </div>
+        <p class="explanation-label">What it did</p>
+        <p class="explanation-text">This was the founding prompt — it scaffolded the entire project from scratch. Claude generated three separate production-ready files: a semantic HTML structure, a full CSS design system with CSS variables, animations, and responsive layout, and a JavaScript game engine with win detection across all 8 combinations, draw detection, score tracking, and a result overlay.</p>
+        <div class="outcome-pills">
+          <span class="pill">index.html</span>
+          <span class="pill">style.css</span>
+          <span class="pill">script.js</span>
+          <span class="pill">Game logic</span>
+          <span class="pill">Dark theme</span>
+          <span class="pill">Scoreboard</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt 2 -->
+    <div class="entry">
+      <div class="entry-line">
+        <div class="step-num">2</div>
+      </div>
+      <div class="entry-body">
+        <span class="entry-tag">Improve</span>
+        <div class="prompt-block">
+          <p class="prompt-label">Exact Prompt</p>
+          <p class="prompt-text" id="p2">Improve the Tic Tac Toe game:
+- Add a scoreboard (track wins for X and O)
+- Add a reset score button
+- Add a dark mode toggle
+- Add simple animations
+- Highlight the winning line</p>
+          <button class="copy-btn" onclick="copyPrompt('p2', this)">Copy</button>
+        </div>
+        <p class="explanation-label">What it did</p>
+        <p class="explanation-text">This prompt attempted to add five new features. Claude identified that all five were already implemented in the first build — the scoreboard, reset score button, animations (pop-in, pulse, glow), winning cell highlight, and dark theme were all present from the start. Claude explained each existing feature and offered further enhancements like a light/dark toggle switch, sound effects, or an AI opponent instead of duplicating work.</p>
+        <div class="outcome-pills">
+          <span class="pill">No new files</span>
+          <span class="pill">Features confirmed</span>
+          <span class="pill">Clarification given</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt 3 -->
+    <div class="entry">
+      <div class="entry-line">
+        <div class="step-num">3</div>
+      </div>
+      <div class="entry-body">
+        <span class="entry-tag">Export</span>
+        <div class="prompt-block">
+          <p class="prompt-label">Exact Prompt</p>
+          <p class="prompt-text" id="p3">Give me all the final files separately so I can download them.</p>
+          <button class="copy-btn" onclick="copyPrompt('p3', this)">Copy</button>
+        </div>
+        <p class="explanation-label">What it did</p>
+        <p class="explanation-text">A straightforward delivery prompt. Since the files already existed in the output directory from the first build, Claude re-presented all three files — index.html, style.css, and script.js — as individually downloadable links. No new code was written; this was purely a file retrieval and presentation step.</p>
+        <div class="outcome-pills">
+          <span class="pill">index.html ↓</span>
+          <span class="pill">style.css ↓</span>
+          <span class="pill">script.js ↓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt 4 -->
+    <div class="entry">
+      <div class="entry-line">
+        <div class="step-num">4</div>
+      </div>
+      <div class="entry-body">
+        <span class="entry-tag">Document</span>
+        <div class="prompt-block">
+          <p class="prompt-label">Exact Prompt</p>
+          <p class="prompt-text" id="p4">Collect all the prompts I used for this Tic Tac Toe project.
+For each prompt:
+- Show the exact prompt
+- Add a short explanation of what it did
+Then create a webpage called process.html with a clean design.</p>
+          <button class="copy-btn" onclick="copyPrompt('p4', this)">Copy</button>
+        </div>
+        <p class="explanation-label">What it did</p>
+        <p class="explanation-text">This meta-documentation prompt instructed Claude to review the entire conversation, extract each prompt verbatim, annotate each one with an explanation of its effect, and package everything into a styled standalone webpage. The result is the page you are reading right now — a build log formatted as an editorial timeline with copy buttons, outcome tags, and a typographic design that complements the Tic Tac Toe project's aesthetic.</p>
+        <div class="outcome-pills">
+          <span class="pill">process.html</span>
+          <span class="pill">This page</span>
+          <span class="pill">Full documentation</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="page-footer">
+    <span class="footer-note">Tic Tac Toe — 2025 · Built with Claude</span>
+    <span class="footer-badge">4 Prompts · 4 Files</span>
+  </footer>
+
+  <script>
+    function copyPrompt(id, btn) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
